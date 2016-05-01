@@ -19,7 +19,7 @@ const PermissionName = {}
 class PermissionError extends Error {
 	constructor(name, msg) {
 		super(msg)
-		this.name = name
+		this.name = 'Permission' + name
 	}
 }
 class Root {
