@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "A cooler w3c Permission API with query, request and a lot more permissions to call",
   "scripts": {
-	  "build": "node node_modules/.bin/gulp"
+    "build": "node node_modules/.bin/gulp"
   },
   "repository": {
     "type": "git",
