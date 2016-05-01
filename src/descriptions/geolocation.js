@@ -61,7 +61,7 @@ new class GeolocationPermission extends Root {
 
 		navigator.geolocation.getCurrentPosition(resolve, err => {
 			if(err.code == 1 && window.chrome && window.chrome.webstore){
-				this.query().then(PermissionStatus => {
+				this.query(PermissionStatus => {
 					this.state = PermissionStatus.state == 'prompt'
 						? 'temporary disabled'
 						: 'denied'

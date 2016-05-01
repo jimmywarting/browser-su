@@ -28,8 +28,8 @@ class Root {
 		PermissionName[name] = this
 	}
 
-	query(opts) {
-		return navigator.permissions.query(opts || {name:this.name})
+	query(resolve, reject, opts) {
+		return navigator.permissions.query(opts || {name:this.name}).then(resolve, reject)
 	}
 
 	dissmissed(reject){

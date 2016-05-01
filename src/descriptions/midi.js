@@ -6,10 +6,10 @@ new class MidiPermission extends Root {
 
 	request(resolve, reject, opts) {
 		navigator.requestMIDIAccess(opts).then(resolve, err =>
-		this.query(opts).then(PermissionStatus =>
+		this.query(PermissionStatus =>
 
 		PermissionStatus.state == 'prompt'
 		? this.dissmissed(reject)
-		: this.denied(reject)))
+		: this.denied(reject), undefined, opts))
 	}
 }
