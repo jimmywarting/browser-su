@@ -42,13 +42,12 @@ new class GeolocationPermission extends Root {
 					success => iframe.remove(resolve(success)),
 					error => {
 						nav.permissions.query({name: 'geolocation'})
-						.then(PermissionStatus => {
-							iframe.remove(resolve(success))
-							({ /* Swich */
+						.then(PermissionStatus =>
+							iframe.remove({ /* Swich */
 								prompt: () => (this.state = 'temporary disabled', this.dissmissed(reject)),
 								denied: () => (this.state = 'denied', this.denied(reject))
-							})[PermissionStatus.state]()
-						})
+							}[PermissionStatus.state]())
+						)
 					}
 				)
 			}
