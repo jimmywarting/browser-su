@@ -14,7 +14,7 @@ return i.name=e,i}return r(o,e),o}(Error),d=function(){function e(n){t(this,e),t
 return new Promise(function(e,n){i(t),t=t[0],c[t.name].query(e,n,t)})},request:function(){for(var e=arguments.length,t=Array(e),n=0;e>n;n++)t[n]=arguments[n]
 return new Promise(function(e,n){i(t),t=t[0],c[t.name].request(e,n,t)})},revoke:function(){for(var e=arguments.length,t=Array(e),n=0;e>n;n++)t[n]=arguments[n]
 return new Promise(function(e,n){i(t)})}}
-e.permissions=m,new(function(e){function o(){return t(this,o),n(this,Object.getPrototypeOf(o).call(this,"BackgroundSync"))}return r(o,e),s(o,[{key:"request",value:function(e,t,n){}}]),o}(d))
+e.su=m,new(function(e){function o(){return t(this,o),n(this,Object.getPrototypeOf(o).call(this,"BackgroundSync"))}return r(o,e),s(o,[{key:"request",value:function(e,t,n){}}]),o}(d))
 var y=function(o){function i(r){t(this,i)
 var o=n(this,Object.getPrototypeOf(i).call(this,r))
 return o.storage=e[r],o.state=o.storage.length?"granted":function(e){try{return o.storage.x=1,o.storage.removeItem("x"),"granted"}catch(t){return"denied"}}(),o}return r(i,o),s(i,[{key:"query",value:function(e,t){for(var n=this.storage.length,r=0;n--;){var o=this.storage.key(n)

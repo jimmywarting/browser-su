@@ -86,4 +86,4 @@ const permissions = {
 	})
 }
 
-window.permissions = permissions
+window.su = permissions
