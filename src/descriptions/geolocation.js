@@ -1,3 +1,8 @@
+/**
+ * [description]
+ *
+ * @since 0.1.0
+ */
 new class GeolocationPermission extends Root {
 
 	constructor() {
