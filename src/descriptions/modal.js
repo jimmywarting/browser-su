@@ -23,7 +23,7 @@ new class ModalPermission extends Root {
 		this.state = 'granted'
 
 		if(result === null)
-			return this.dissmissed(reject)
+			return this.dismissed(reject)
 
 		resolve(result)
 

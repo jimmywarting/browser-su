@@ -19,7 +19,7 @@ const PermissionName = {}
 class PermissionError extends Error {
 	constructor(name, msg) {
 		super(msg)
-		this.name = 'Permission' + name
+		this.name = 'Request' + name + 'Error'
 	}
 }
 class Root {
@@ -32,16 +32,16 @@ class Root {
 		return navigator.permissions.query(opts || {name:this.name}).then(resolve, reject)
 	}
 
-	dissmissed(reject){
-		reject(new PermissionError('DismissedError', 'User dissmissed access to ' + this.name))
+	dismissed(reject){
+		reject(new PermissionError('Dismissed', 'User dismissed access to ' + this.name))
 	}
 
 	denied(reject){
-		reject(new PermissionError('DeniedError', 'User blocked access to ' + this.name))
+		reject(new PermissionError('Denied', 'User blocked access to ' + this.name))
 	}
 
 	unsupported(){
-		throw new PermissionError('UnsupportedError', 'This client dose not seem to have ' + this.name + ' support')
+		throw new PermissionError('Unsupported', 'This client dose not seem to have ' + this.name + ' support')
 	}
 }
 

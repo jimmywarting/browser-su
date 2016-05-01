@@ -34,7 +34,7 @@ new class GeolocationPermission extends Root {
 		.then(json => console.log(json))
 		*/
 
-		// in chrome when you dissmissed the dialog it throws denied error
+		// in chrome when you dismissed the dialog it throws denied error
 		// but the fact is that you can still request a new permission if
 		// you just reload the page, a workaround is to create a new iframe
 		// and ask from that window
@@ -49,7 +49,7 @@ new class GeolocationPermission extends Root {
 						nav.permissions.query({name: 'geolocation'})
 						.then(PermissionStatus =>
 							iframe.remove({ /* Swich */
-								prompt: () => (this.state = 'temporary disabled', this.dissmissed(reject)),
+								prompt: () => (this.state = 'temporary disabled', this.dismissed(reject)),
 								denied: () => (this.state = 'denied', this.denied(reject))
 							}[PermissionStatus.state]())
 						)
@@ -71,10 +71,14 @@ new class GeolocationPermission extends Root {
 						: 'denied'
 
 					if(PermissionStatus.state == 'prompt')
-						return this.dissmissed(reject)
+						return this.dismissed(reject)
 					this.request(resolve, reject, opts)
 				})
 			}
-		})
+			{ /* Swich */
+				2: () => (this.state = 'granted', reject(new PermissionError('Unavailable', 'Possition is unavailable'))),
+				3: () => (this.state = 'granted', reject(new PermissionError('Timeout', 'Timeout expired')))
+			}[PermissionStatus.state]()
+		}, opts)
 	}
 }

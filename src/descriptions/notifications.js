@@ -6,7 +6,7 @@ new class NotificationPermission extends Root {
 
 	request(resolve, reject) {
 		const cb = state => ({
-			default: () => this.dissmissed(reject),
+			default: () => this.dismissed(reject),
 			denied: () => this.denied(reject),
 			granted: () => resolve()
 		})[state]()

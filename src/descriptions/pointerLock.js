@@ -28,7 +28,7 @@ new class pointerLock extends Root {
 			} else {
 				// Deny in chrome don't block, it really means dissmiss...
 				this.state = 'prompt'
-				this.dissmissed(reject)
+				this.dismissed(reject)
 			}
 		})
 

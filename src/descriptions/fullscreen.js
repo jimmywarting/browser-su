@@ -80,7 +80,7 @@ new class FullScreenPermission extends Root {
 
         once(document, events.change + ' ' + events.error, evt => {
 			if(evt.type === events.change) resolve()
-			if(evt.type === events.error) this.dissmissed(reject)
+			if(evt.type === events.error) this.dismissed(reject)
 		})
 
 		opts.element[this.api.request]()

@@ -9,7 +9,7 @@ new class MidiPermission extends Root {
 		this.query(PermissionStatus =>
 
 		PermissionStatus.state == 'prompt'
-		? this.dissmissed(reject)
+		? this.dismissed(reject)
 		: this.denied(reject), undefined, opts))
 	}
 }
