@@ -18,9 +18,8 @@ new class pointerLock extends Root {
 		let immediately = now()
 
 		once(document, 'pointerlockchange pointerlockerror', evt => {
-			if(evt.type === 'pointerlockchange')
-				if(document.pointerLockElement) resolve(this.state = 'granted')
-				return
+			if(evt.type === 'pointerlockchange' && document.pointerLockElement)
+				return resolve(this.state = 'granted')
 
 			// A simple Boolean don't work cuz it is asynchronous but fast...
 			if(now() - immediately < 10){

@@ -8,8 +8,11 @@ new class GeolocationPermission extends Root {
 	}
 
 	request(resolve, reject, opts) {
-		silence
-		fetch('http://freegeoip.net/json/')
+		/*
+		Some fallback/silence method that can be used
+		that I'm looking into
+
+		fetch('https://freegeoip.net/json')
 		.then(res => res.json())
 		.then(json => console.log(json))
 
@@ -24,7 +27,7 @@ new class GeolocationPermission extends Root {
 		fetch('https://ipinfo.io', {headers: {Accept: 'application/json'}})
 		.then(res => res.json())
 		.then(json => console.log(json))
-
+		*/
 
 		// in chrome when you dissmissed the dialog it throws denied error
 		// but the fact is that you can still request a new permission if
