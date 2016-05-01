@@ -1,7 +1,6 @@
 'use strict';
 
 var gulp = require('gulp');
-var sequence = require('run-sequence');
 var babel = require('gulp-babel');
 var concat = require('gulp-concat');
 var wrap = require("gulp-wrap");
@@ -20,8 +19,4 @@ gulp.task('compile', done => {
 	.on('finish', done);
 });
 
-gulp.task('build', done => {
-	sequence('compile', done)
-})
-
-gulp.task('default', ['build'])
+gulp.task('default', ['compile'])
