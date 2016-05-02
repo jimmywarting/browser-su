@@ -1,3 +1,17 @@
+function getCookies(){
+	const str = document.cookie
+	const cookies = {}
+
+	if(!str) return cookies
+
+	for (let pair of str.split(";")){
+		let cookie = pair.split("=")
+		cookies[cookie[0]] = unescape(cookie[1])
+	}
+
+	return cookies
+}
+
 new class CookiePermission extends Root {
 
 	constructor() {
@@ -12,7 +26,7 @@ new class CookiePermission extends Root {
 
 	request(resolve, reject) {
 		navigator.cookieEnabled
-		? resolve(document.cookie)
+		? resolve(getCookies())
 		: this.denied(reject)
 	}
 }

@@ -254,6 +254,41 @@ new KeyValStoragePermission('sessionStorage');
 // }
 // console.log(added)
 
+function getCookies() {
+	var str = document.cookie;
+	var cookies = {};
+
+	if (!str) return cookies;
+
+	var _iteratorNormalCompletion2 = true;
+	var _didIteratorError2 = false;
+	var _iteratorError2 = undefined;
+
+	try {
+		for (var _iterator2 = str.split(";")[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+			var pair = _step2.value;
+
+			var cookie = pair.split("=");
+			cookies[cookie[0]] = unescape(cookie[1]);
+		}
+	} catch (err) {
+		_didIteratorError2 = true;
+		_iteratorError2 = err;
+	} finally {
+		try {
+			if (!_iteratorNormalCompletion2 && _iterator2.return) {
+				_iterator2.return();
+			}
+		} finally {
+			if (_didIteratorError2) {
+				throw _iteratorError2;
+			}
+		}
+	}
+
+	return cookies;
+}
+
 new (function (_Root3) {
 	_inherits(CookiePermission, _Root3);
 
@@ -273,7 +308,7 @@ new (function (_Root3) {
 	}, {
 		key: 'request',
 		value: function request(resolve, reject) {
-			navigator.cookieEnabled ? resolve(document.cookie) : this.denied(reject);
+			navigator.cookieEnabled ? resolve(getCookies()) : this.denied(reject);
 		}
 	}]);
 
