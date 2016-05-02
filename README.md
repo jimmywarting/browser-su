@@ -13,7 +13,7 @@ Browser SU tries to solves three main issues
  2. Requesting with one simple syntax
  3. Added feature detecting
 
-#### Why didn't I write this a polyfill? Why make your own invention?
+#### Why didn't I write this as a polyfill? Why make your own invention?
 The Permission API is a living standard and keeps changing. They don't cover all the permissions. The request is not finilised yet. And you get more useful information with this then what you would get with the standard API
 
 I try to stay consistent as much as possible with the permission API. But doing some neat trade-off.
