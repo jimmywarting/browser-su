@@ -61,7 +61,7 @@ var PermissionError = function (_Error) {
 
 		var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(PermissionError).call(this, msg));
 
-		_this.name = 'Permission' + name;
+		_this.name = 'Request' + name + 'Error';
 		return _this;
 	}
 
@@ -82,19 +82,19 @@ var Root = function () {
 			return navigator.permissions.query(opts || { name: this.name }).then(resolve, reject);
 		}
 	}, {
-		key: 'dissmissed',
-		value: function dissmissed(reject) {
-			reject(new PermissionError('DismissedError', 'User dissmissed access to ' + this.name));
+		key: 'dismissed',
+		value: function dismissed(reject) {
+			reject(new PermissionError('Dismissed', 'User dismissed access to ' + this.name));
 		}
 	}, {
 		key: 'denied',
 		value: function denied(reject) {
-			reject(new PermissionError('DeniedError', 'User blocked access to ' + this.name));
+			reject(new PermissionError('Denied', 'User blocked access to ' + this.name));
 		}
 	}, {
 		key: 'unsupported',
 		value: function unsupported() {
-			throw new PermissionError('UnsupportedError', 'This client dose not seem to have ' + this.name + ' support');
+			throw new PermissionError('Unsupported', 'This client dose not seem to have ' + this.name + ' support');
 		}
 	}]);
 
@@ -366,7 +366,7 @@ new (function (_Root4) {
 
 			once(document, events.change + ' ' + events.error, function (evt) {
 				if (evt.type === events.change) resolve();
-				if (evt.type === events.error) _this6.dissmissed(reject);
+				if (evt.type === events.error) _this6.dismissed(reject);
 			});
 
 			opts.element[this.api.request]();
@@ -381,6 +381,11 @@ new (function (_Root4) {
 	return FullScreenPermission;
 }(Root))();
 
+/**
+ * [description]
+ *
+ * @since 0.1.0
+ */
 new (function (_Root5) {
 	_inherits(GeolocationPermission, _Root5);
 
@@ -417,7 +422,7 @@ new (function (_Root5) {
    .then(json => console.log(json))
    */
 
-			// in chrome when you dissmissed the dialog it throws denied error
+			// in chrome when you dismissed the dialog it throws denied error
 			// but the fact is that you can still request a new permission if
 			// you just reload the page, a workaround is to create a new iframe
 			// and ask from that window
@@ -433,7 +438,7 @@ new (function (_Root5) {
 							nav.permissions.query({ name: 'geolocation' }).then(function (PermissionStatus) {
 								return iframe.remove({ /* Swich */
 									prompt: function prompt() {
-										return _this8.state = 'temporary disabled', _this8.dissmissed(reject);
+										return _this8.state = 'temporary disabled', _this8.dismissed(reject);
 									},
 									denied: function denied() {
 										return _this8.state = 'denied', _this8.denied(reject);
@@ -459,11 +464,19 @@ new (function (_Root5) {
 					_this8.query(function (PermissionStatus) {
 						_this8.state = PermissionStatus.state == 'prompt' ? 'temporary disabled' : 'denied';
 
-						if (PermissionStatus.state == 'prompt') return _this8.dissmissed(reject);
+						if (PermissionStatus.state == 'prompt') return _this8.dismissed(reject);
 						_this8.request(resolve, reject, opts);
 					});
 				}
-			});
+				({ /* Swich */
+					2: function _() {
+						return _this8.state = 'granted', reject(new PermissionError('Unavailable', 'Possition is unavailable'));
+					},
+					3: function _() {
+						return _this8.state = 'granted', reject(new PermissionError('Timeout', 'Timeout expired'));
+					}
+				})[PermissionStatus.state]();
+			}, opts);
 		}
 	}]);
 
@@ -542,7 +555,7 @@ new (function (_Root7) {
 
 			navigator.requestMIDIAccess(opts).then(resolve, function (err) {
 				return _this12.query(function (PermissionStatus) {
-					return PermissionStatus.state == 'prompt' ? _this12.dissmissed(reject) : _this12.denied(reject);
+					return PermissionStatus.state == 'prompt' ? _this12.dismissed(reject) : _this12.denied(reject);
 				}, undefined, opts);
 			});
 		}
@@ -583,7 +596,7 @@ new (function (_Root8) {
 
 			this.state = 'granted';
 
-			if (result === null) return this.dissmissed(reject);
+			if (result === null) return this.dismissed(reject);
 
 			resolve(result);
 		}
@@ -609,7 +622,7 @@ new (function (_Root9) {
 			var cb = function cb(state) {
 				return {
 					default: function _default() {
-						return _this15.dissmissed(reject);
+						return _this15.dismissed(reject);
 					},
 					denied: function denied() {
 						return _this15.denied(reject);
@@ -665,7 +678,7 @@ new (function (_Root10) {
 				} else {
 					// Deny in chrome don't block, it really means dissmiss...
 					_this17.state = 'prompt';
-					_this17.dissmissed(reject);
+					_this17.dismissed(reject);
 				}
 			});
 
@@ -689,9 +702,8 @@ new (function (_Root11) {
 		key: 'request',
 		value: function request(resolve, reject, opts) {
 			navigator.serviceWorker.getRegistrations().then(function (workers) {
-				if (!workers.length) {
-					throw new DOMError('PermissionDeniedError', 'Push requires at least one service worker to be running');
-				}
+				if (!workers.length) throw new PermissionError('Missing', 'Push requires at least one service worker to be running');
+
 				navigator.serviceWorker.ready.then(function (serviceWorkerRegistration) {
 					return serviceWorkerRegistration.pushManager.subscribe({ userVisibleOnly: true }).then(function (subscription) {
 						var key = subscription.getKey && subscription.getKey('p256dh');
