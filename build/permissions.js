@@ -300,10 +300,34 @@ new (function (_Root3) {
 
 	_createClass(CookiePermission, [{
 		key: 'query',
-		value: function query(resolve, reject) {
-			var state = navigator.cookieEnabled ? 'enable' : 'denied';
-			var permission = new PermissionStatus(state);
-			return Promise.resolve(permission);
+		value: function query(resolve, reject, opts) {
+
+			var enabled = navigator.cookieEnabled;
+
+			if (opts.thirdParty && enabled) {
+				(function () {
+					var receiveMessage = function receiveMessage(evt) {
+						if (evt.data === 'EnabledthirdParty::false' || evt.data === 'EnabledthirdParty::true') {
+							var state = ~evt.data.indexOf('true') ? 'enable' : 'denied';
+							var permission = new PermissionStatus(state);
+
+							iframe.remove();
+							resolve(permission);
+						}
+					};
+
+					var iframe = document.createElement('iframe');
+					iframe.src = 'https://jimmywarting.github.io/browser-su/start';
+					iframe.hidden = true;
+					window.addEventListener("message", receiveMessage, false);
+					document.body.appendChild(iframe);
+				})();
+			} else {
+				var state = enabled ? 'enable' : 'denied';
+				var permission = new PermissionStatus(state);
+
+				resolve(permission);
+			}
 		}
 	}, {
 		key: 'request',
@@ -462,7 +486,7 @@ new (function (_Root5) {
 			// you just reload the page, a workaround is to create a new iframe
 			// and ask from that window
 			if (this.state === 'temporary disabled') {
-				var _ret = function () {
+				var _ret2 = function () {
 					var iframe = document.createElement('iframe');
 					iframe.hidden = true;
 					iframe.onload = function () {
@@ -487,7 +511,7 @@ new (function (_Root5) {
 					};
 				}();
 
-				if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
+				if ((typeof _ret2 === 'undefined' ? 'undefined' : _typeof(_ret2)) === "object") return _ret2.v;
 			}
 
 			if (this.state === 'denied') {

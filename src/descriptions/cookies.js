@@ -18,10 +18,33 @@ new class CookiePermission extends Root {
 		super('cookie')
 	}
 
-	query(resolve, reject) {
-		let state = navigator.cookieEnabled ? 'enable' : 'denied'
-		let permission = new PermissionStatus(state)
-		return Promise.resolve(permission)
+	query(resolve, reject, opts) {
+
+		let enabled = navigator.cookieEnabled
+
+		if(opts.thirdParty && enabled) {
+			function receiveMessage(evt) {
+				if (evt.data === 'EnabledthirdParty::false' || evt.data === 'EnabledthirdParty::true') {
+					let state = ~evt.data.indexOf('true') ? 'enable' : 'denied'
+					let permission = new PermissionStatus(state)
+
+					iframe.remove()
+					resolve(permission)
+				}
+			}
+
+			let iframe = document.createElement('iframe')
+			iframe.src = 'https://jimmywarting.github.io/browser-su/start'
+			iframe.hidden = true
+			window.addEventListener("message", receiveMessage, false)
+			document.body.appendChild(iframe)
+		} else {
+			let state = enabled ? 'enable' : 'denied'
+			let permission = new PermissionStatus(state)
+
+			resolve(permission)
+		}
+
 	}
 
 	request(resolve, reject) {
