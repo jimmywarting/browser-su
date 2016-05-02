@@ -9,9 +9,9 @@ Today we have too many diffrent permission request API. Geolocation, Desktop not
 
 Browser SU tries to solves three main issues
 
- 1. Querying and keeping track of permission states
- 2. Requesting permission with one simple syntax
- 3. And feature detecting
+ 1. Querying and keeping track of permission
+ 2. Requesting with one simple syntax
+ 3. Added feature detecting
 
 #### Why didn't I write this a polyfill? Why make your own invention?
 The Permission API is a living standard and keeps changing. They don't cover all the permissions. The request is not finilised yet. And you get more useful information with this then what you would get with the standard API
