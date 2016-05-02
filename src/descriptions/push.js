@@ -6,9 +6,9 @@ new class PushPermission extends Root {
 
 	request(resolve, reject, opts){
 		navigator.serviceWorker.getRegistrations().then(workers => {
-			if(!workers.length) {
-				throw new DOMError('PermissionDeniedError', 'Push requires at least one service worker to be running')
-			}
+			if(!workers.length)
+				throw new PermissionError('Missing', 'Push requires at least one service worker to be running')
+
 			navigator.serviceWorker.ready.then( serviceWorkerRegistration =>
 				serviceWorkerRegistration.pushManager.subscribe({userVisibleOnly: true})
 				.then( subscription => {
