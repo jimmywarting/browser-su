@@ -308,7 +308,7 @@ new (function (_Root3) {
 				(function () {
 					var receiveMessage = function receiveMessage(evt) {
 						if (evt.data === 'EnabledthirdParty::false' || evt.data === 'EnabledthirdParty::true') {
-							var state = ~evt.data.indexOf('true') ? 'enable' : 'denied';
+							var state = ~evt.data.indexOf('true') ? 'granted' : 'denied';
 							var permission = new PermissionStatus(state);
 
 							iframe.remove();
@@ -323,7 +323,7 @@ new (function (_Root3) {
 					document.body.appendChild(iframe);
 				})();
 			} else {
-				var state = enabled ? 'enable' : 'denied';
+				var state = enabled ? 'granted' : 'denied';
 				var permission = new PermissionStatus(state);
 
 				resolve(permission);
@@ -670,7 +670,12 @@ new (function (_Root9) {
 	function NotificationPermission() {
 		_classCallCheck(this, NotificationPermission);
 
-		return _possibleConstructorReturn(this, Object.getPrototypeOf(NotificationPermission).call(this, 'notifications'));
+		var _this14 = _possibleConstructorReturn(this, Object.getPrototypeOf(NotificationPermission).call(this, 'notifications'));
+
+		if (!navigator.permissions) _this14.query = function (resolve) {
+			return resolve(new PermissionStatus(Notification.permission === 'default' ? 'prompt' : Notification.permission));
+		};
+		return _this14;
 	}
 
 	_createClass(NotificationPermission, [{

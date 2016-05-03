@@ -25,7 +25,7 @@ new class CookiePermission extends Root {
 		if(opts.thirdParty && enabled) {
 			function receiveMessage(evt) {
 				if (evt.data === 'EnabledthirdParty::false' || evt.data === 'EnabledthirdParty::true') {
-					let state = ~evt.data.indexOf('true') ? 'enable' : 'denied'
+					let state = ~evt.data.indexOf('true') ? 'granted' : 'denied'
 					let permission = new PermissionStatus(state)
 
 					iframe.remove()
@@ -39,7 +39,7 @@ new class CookiePermission extends Root {
 			window.addEventListener("message", receiveMessage, false)
 			document.body.appendChild(iframe)
 		} else {
-			let state = enabled ? 'enable' : 'denied'
+			let state = enabled ? 'granted' : 'denied'
 			let permission = new PermissionStatus(state)
 
 			resolve(permission)
