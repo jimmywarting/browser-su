@@ -409,7 +409,10 @@ new (function (_Root4) {
 
 	_createClass(FullScreenPermission, [{
 		key: 'query',
-		value: function query() {}
+		value: function query(resolve) {
+			var permission = new PermissionStatus(this.state);
+			resolve(permission);
+		}
 	}, {
 		key: 'request',
 		value: function request(resolve, reject, opts) {
@@ -455,6 +458,10 @@ new (function (_Root5) {
 
 		_this7.enableHighAccurary = false;
 		_this7.state = 'unknown';
+
+		if (!navigator.permissions) _this7.query = function (resolve) {
+			return resolve(new PermissionStatus(_this7.state));
+		};
 		return _this7;
 	}
 
@@ -604,7 +611,13 @@ new (function (_Root7) {
 	function MidiPermission() {
 		_classCallCheck(this, MidiPermission);
 
-		return _possibleConstructorReturn(this, Object.getPrototypeOf(MidiPermission).call(this, 'midi'));
+		var _this11 = _possibleConstructorReturn(this, Object.getPrototypeOf(MidiPermission).call(this, 'midi'));
+
+		if (!navigator.requestMIDIAccess) _this11.query = function (resolve) {
+			return resolve(new PermissionStatus('unsupported'));
+		};
+
+		return _this11;
 	}
 
 	_createClass(MidiPermission, [{
@@ -637,7 +650,9 @@ new (function (_Root8) {
 
 	_createClass(ModalPermission, [{
 		key: 'query',
-		value: function query() {}
+		value: function query(resolve) {
+			resolve(new PermissionStatus(this.state));
+		}
 	}, {
 		key: 'request',
 		value: function request(resolve, reject, opts) {
@@ -711,7 +726,7 @@ new (function (_Root10) {
 	function pointerLock() {
 		_classCallCheck(this, pointerLock);
 
-		var _this16 = _possibleConstructorReturn(this, Object.getPrototypeOf(pointerLock).call(this, 'PointerLock'));
+		var _this16 = _possibleConstructorReturn(this, Object.getPrototypeOf(pointerLock).call(this, 'pointerlock'));
 
 		_this16.state = 'unknown';
 		return _this16;
@@ -721,7 +736,7 @@ new (function (_Root10) {
 		key: 'query',
 		value: function query(resolve, reject) {
 			var permission = new PermissionStatus(this.state);
-			return Promise.resolve(permission);
+			resolve(permission);
 		}
 	}, {
 		key: 'request',
@@ -759,7 +774,15 @@ new (function (_Root11) {
 	function PushPermission() {
 		_classCallCheck(this, PushPermission);
 
-		return _possibleConstructorReturn(this, Object.getPrototypeOf(PushPermission).call(this, 'push'));
+		// Could we do better? like checking if we have a subscription...?
+		// It would not work without ssl, so we could disabled it then
+
+		var _this18 = _possibleConstructorReturn(this, Object.getPrototypeOf(PushPermission).call(this, 'push'));
+
+		if (!navigator.permissions) _this18.query = function (resolve) {
+			return resolve(new PermissionStatus(location.protocol == 'https:' || document.location.hostname == "localhost" ? 'unknown' : 'denied'));
+		};
+		return _this18;
 	}
 
 	_createClass(PushPermission, [{
@@ -793,32 +816,44 @@ new (function (_Root12) {
 	function StoragePermission() {
 		_classCallCheck(this, StoragePermission);
 
-		return _possibleConstructorReturn(this, Object.getPrototypeOf(StoragePermission).call(this, 'storage'));
+		var _this19 = _possibleConstructorReturn(this, Object.getPrototypeOf(StoragePermission).call(this, 'storage'));
+
+		if (!navigator.webkitPersistentStorage) _this19.query = function (resolve) {
+			return resolve(new PermissionStatus('unsupported'));
+		};
+		return _this19;
 	}
 
 	_createClass(StoragePermission, [{
 		key: 'query',
 		value: function query(resolve, reject, opts) {
-			if (opts.type === undefined) throw new TypeError('Failed to execute the \'query\' property from \'Permissions\': required member type is undefined.');
+			if (opts.type === undefined) throw new TypeError('Failed to execute the \'query\' property from \'su\': required member type is undefined.');
 
-			if (!/^(persistent|temporary)$/.test(opts.type)) throw new TypeError('Failed to execute the \'query\' property from \'Permissions\': The provided value \'' + opts.type + '\' is not a valid enum type.');
+			if (!/^(persistent|temporary)$/.test(opts.type)) throw new TypeError('Failed to execute the \'query\' property from \'su\': The provided value \'' + opts.type + '\' is not a valid enum type.');
 
-			var storage = opts.type == 'persistent' ? 'webkitPersistentStorage' : 'webkitTemporaryStorage';
-
-			navigator[storage].queryUsageAndQuota(function (usedBytes, grantedBytes) {
-				return resolve({
-					state: grantedBytes ? "granted" : "prompt",
-					used: usedBytes,
-					granted: grantedBytes
-				});
+			StoragePermission.store(opts.type).queryUsageAndQuota(function (usedBytes, grantedBytes) {
+				var status = new PermissionStatus(grantedBytes >= opts.quota ? 'granted' : 'prompt');
+				status.used = usedBytes;
+				status.granted = grantedBytes;
+				resolve(status);
 			});
 		}
 	}, {
 		key: 'request',
 		value: function request(resolve, reject, opts) {
-			grantedBytes = navigator.webkitPersistentStorage.requestQuota(opts.quota, function (grantedBytes) {
+			grantedBytes = StoragePermission.store(opts.type).requestQuota(opts.quota, function (grantedBytes) {
+				webkitRequestFileSystem(opts.type == 'persistent', function (e) {
+					console.log(e);
+				}, function (e) {
+					console.log(e);
+				});
 				console.log(grantedBytes, f);
 			});
+		}
+	}], [{
+		key: 'store',
+		value: function store(type) {
+			return navigator[type == 'persistent' ? 'webkitPersistentStorage' : 'webkitTemporaryStorage'];
 		}
 	}]);
 

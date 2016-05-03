@@ -1,14 +1,14 @@
 new class pointerLock extends Root {
 
 	constructor() {
-		super('PointerLock')
+		super('pointerlock')
 
 		this.state = 'unknown'
 	}
 
 	query(resolve, reject) {
 		let permission = new PermissionStatus(this.state)
-		return Promise.resolve(permission)
+		resolve(permission)
 	}
 
 	request(resolve, reject, opts) {

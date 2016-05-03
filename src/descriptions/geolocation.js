@@ -10,6 +10,9 @@ new class GeolocationPermission extends Root {
 
 		this.enableHighAccurary = false
 		this.state = 'unknown'
+
+		if(!navigator.permissions)
+			this.query = resolve => resolve(new PermissionStatus(this.state))
 	}
 
 	request(resolve, reject, opts) {

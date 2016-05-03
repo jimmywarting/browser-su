@@ -63,8 +63,9 @@ new class FullScreenPermission extends Root {
 		}
 	}
 
-	query() {
-
+	query(resolve) {
+		let permission = new PermissionStatus(this.state)
+		resolve(permission)
 	}
 
 	request(resolve, reject, opts) {

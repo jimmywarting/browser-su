@@ -2,6 +2,16 @@ new class PushPermission extends Root {
 
 	constructor() {
 		super('push')
+
+		// Could we do better? like checking if we have a subscription...?
+		// It would not work without ssl, so we could disabled it then
+		if(!navigator.permissions)
+			this.query = resolve => resolve(new PermissionStatus(
+				location.protocol == 'https:' ||
+				document.location.hostname == "localhost"
+					? 'unknown'
+					: 'denied'
+			))
 	}
 
 	request(resolve, reject, opts){

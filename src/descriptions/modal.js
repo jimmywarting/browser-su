@@ -6,8 +6,8 @@ new class ModalPermission extends Root {
 		this.state = 'granted'
 	}
 
-	query(){
-
+	query(resolve){
+		resolve(new PermissionStatus(this.state))
 	}
 
 	request(resolve, reject, opts){
