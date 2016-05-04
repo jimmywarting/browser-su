@@ -1,27 +1,29 @@
 "use strict"
 
-// create a one-time event
-function once(node, types, callback) {
-	var map = types.split(' ').map( name => {
-        let cb = evt => {
-            for(let x of map) node.removeEventListener(x[1], x[0])
-			// call handler
-			callback(evt)
-        }
-        node.addEventListener(name, cb, false)
-        return [cb, name]
-    })
-}
-
 const iframed = !window.opener && !!(window.top && window != window.top || window.parent && window != window.parent);
 const now = window.performance && performance.now || Date.now || (C => +new Date)
 const PermissionName = {}
+
+// create a one-time event
+const once = (node, types, callback) => {
+	var map = types.split(' ').map( name => {
+		let cb = evt => {
+			for(let x of map) node.removeEventListener(x[1], x[0])
+			// call handler
+			callback(evt)
+		}
+		node.addEventListener(name, cb, false)
+		return [cb, name]
+	})
+}
+
 class PermissionError extends Error {
 	constructor(name, msg) {
 		super(msg)
 		this.name = 'Request' + name + 'Error'
 	}
 }
+
 class Root {
 	constructor(name){
 		this.name = name
@@ -47,7 +49,8 @@ class Root {
 
 class PermissionStatus {
 	constructor(state){
-		this.state = state || 'prompt'
+		// convert default to prompt
+		this.state = state !== 'default' && state || 'prompt'
 		this.onchange = null
 	}
 }

@@ -1,4 +1,4 @@
-function getCookies(){
+ const getCookies = () => {
 	const str = document.cookie
 	const cookies = {}
 
@@ -23,7 +23,7 @@ new class CookiePermission extends Root {
 		let enabled = navigator.cookieEnabled
 
 		if(opts.thirdParty && enabled) {
-			function receiveMessage(evt) {
+			let receiveMessage = evt => {
 				if (evt.data === 'EnabledthirdParty::false' || evt.data === 'EnabledthirdParty::true') {
 					let state = ~evt.data.indexOf('true') ? 'granted' : 'denied'
 					let permission = new PermissionStatus(state)
