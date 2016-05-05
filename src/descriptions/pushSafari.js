@@ -4,6 +4,8 @@ new class PushSafariPermission extends Root {
 
 	constructor() {
 		super('push-safari')
+		this.supported = ((window.safari || {}).pushNotification || {}).permission
+
 	}
 
 	static str2ab(str) {
@@ -17,7 +19,7 @@ new class PushSafariPermission extends Root {
 	}
 
 	query(resolve, reject, opts) {
-		let state = safari.pushNotification.permission(opts.pushId)
+		let state = window.safari.pushNotification.permission(opts.pushId)
 		let permission = new PermissionStatus(state.permission)
 
 		permission.endpoint = 'gateway.push.apple.com:2195'
@@ -29,7 +31,7 @@ new class PushSafariPermission extends Root {
 	// You can never dissmiss the dialog in safari, pressing esc denies
 	// and there is no dissmiss button or click outside
 	request(resolve, reject, opts) {
-		safari.pushNotification.requestPermission(
+		window.safari.pushNotification.requestPermission(
 			opts.serviceUrl,
 			opts.pushId,
 			opts.data || {},

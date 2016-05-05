@@ -1,8 +1,6 @@
 ;(function(window){
 "use strict";
 
-// create a one-time event
-
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -13,7 +11,14 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-function once(node, types, callback) {
+var iframed = !window.opener && !!(window.top && window != window.top || window.parent && window != window.parent);
+var now = window.performance && performance.now || Date.now || function (C) {
+	return +new Date();
+};
+var PermissionName = {};
+
+// create a one-time event
+var once = function once(node, types, callback) {
 	var map = types.split(' ').map(function (name) {
 		var cb = function cb(evt) {
 			var _iteratorNormalCompletion = true;
@@ -45,13 +50,7 @@ function once(node, types, callback) {
 		node.addEventListener(name, cb, false);
 		return [cb, name];
 	});
-}
-
-var iframed = !window.opener && !!(window.top && window != window.top || window.parent && window != window.parent);
-var now = window.performance && performance.now || Date.now || function (C) {
-	return +new Date();
 };
-var PermissionName = {};
 
 var PermissionError = function (_Error) {
 	_inherits(PermissionError, _Error);
@@ -92,9 +91,13 @@ var Root = function () {
 			reject(new PermissionError('Denied', 'User blocked access to ' + this.name));
 		}
 	}, {
-		key: 'unsupported',
-		value: function unsupported() {
-			throw new PermissionError('Unsupported', 'This client dose not seem to have ' + this.name + ' support');
+		key: 'supported',
+		set: function set(isSupported) {
+			var _this2 = this;
+
+			!isSupported && (this.query = this.request = function () {
+				throw new PermissionError('Unsupported', 'This client dose not seem to have ' + _this2.name + ' support');
+			});
 		}
 	}]);
 
@@ -102,9 +105,20 @@ var Root = function () {
 }();
 
 var PermissionStatus = function PermissionStatus(state) {
+	var _this3 = this;
+
 	_classCallCheck(this, PermissionStatus);
 
-	this.state = state || 'prompt';
+	var eventTarget = document.createDocumentFragment();
+
+	['addEventListener', 'dispatchEvent', 'removeEventListener'].forEach(function (method) {
+		return Object.defineProperty(_this3, method, {
+			value: eventTarget[method]
+		});
+	});
+
+	// convert default to prompt
+	this.state = state !== 'default' && state || 'prompt';
 	this.onchange = null;
 };
 
@@ -200,19 +214,19 @@ var KeyValStoragePermission = function (_Root2) {
 	function KeyValStoragePermission(name) {
 		_classCallCheck(this, KeyValStoragePermission);
 
-		var _this3 = _possibleConstructorReturn(this, Object.getPrototypeOf(KeyValStoragePermission).call(this, name));
+		var _this5 = _possibleConstructorReturn(this, Object.getPrototypeOf(KeyValStoragePermission).call(this, name));
 
-		_this3.storage = window[name];
-		_this3.state = _this3.storage.length ? 'granted' : function (x) {
+		_this5.storage = window[name];
+		_this5.state = _this5.storage.length ? 'granted' : function (x) {
 			try {
-				_this3.storage.x = 1;
-				_this3.storage.removeItem('x');
+				_this5.storage.x = 1;
+				_this5.storage.removeItem('x');
 				return 'granted';
 			} catch (e) {
 				return 'denied';
 			}
 		}();
-		return _this3;
+		return _this5;
 	}
 
 	_createClass(KeyValStoragePermission, [{
@@ -225,11 +239,10 @@ var KeyValStoragePermission = function (_Root2) {
 				used += key.length + this.storage.getItem(key).length;
 			}
 
-			resolve({
-				state: this.state,
-				used: used * 2,
-				granted: 'unknown'
-			});
+			var status = new PermissionStatus(this.state);
+			status.used = used * 2;
+			// status.granted = 'unknown'
+			resolve(status);
 		}
 	}]);
 
@@ -254,7 +267,7 @@ new KeyValStoragePermission('sessionStorage');
 // }
 // console.log(added)
 
-function getCookies() {
+var getCookies = function getCookies() {
 	var str = document.cookie;
 	var cookies = {};
 
@@ -287,7 +300,7 @@ function getCookies() {
 	}
 
 	return cookies;
-}
+};
 
 new (function (_Root3) {
 	_inherits(CookiePermission, _Root3);
@@ -345,9 +358,7 @@ new (function (_Root4) {
 	function FullScreenPermission() {
 		_classCallCheck(this, FullScreenPermission);
 
-		var _this5 = _possibleConstructorReturn(this, Object.getPrototypeOf(FullScreenPermission).call(this, 'fullscreen'));
-
-		_this5.supported = false;
+		var _this7 = _possibleConstructorReturn(this, Object.getPrototypeOf(FullScreenPermission).call(this, 'fullscreen'));
 
 		var apis = {
 			// http://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
@@ -399,12 +410,13 @@ new (function (_Root4) {
 			// Check if document has the "enabled" property
 			if (apis[vendor].enabled in document) {
 				// It seems this browser support the fullscreen API
-				_this5.api = apis[vendor];
-				_this5.supported = true;
+				_this7.api = apis[vendor];
 				break;
 			}
 		}
-		return _this5;
+
+		_this7.supported = _this7.api;
+		return _this7;
 	}
 
 	_createClass(FullScreenPermission, [{
@@ -416,7 +428,7 @@ new (function (_Root4) {
 	}, {
 		key: 'request',
 		value: function request(resolve, reject, opts) {
-			var _this6 = this;
+			var _this8 = this;
 
 			if (!this.supported) this.unsupported();
 
@@ -428,7 +440,7 @@ new (function (_Root4) {
 
 			once(document, events.change + ' ' + events.error, function (evt) {
 				if (evt.type === events.change) resolve();
-				if (evt.type === events.error) _this6.dismissed(reject);
+				if (evt.type === events.error) _this8.dismissed(reject);
 			});
 
 			opts.element[this.api.request]();
@@ -454,21 +466,21 @@ new (function (_Root5) {
 	function GeolocationPermission() {
 		_classCallCheck(this, GeolocationPermission);
 
-		var _this7 = _possibleConstructorReturn(this, Object.getPrototypeOf(GeolocationPermission).call(this, 'geolocation'));
+		var _this9 = _possibleConstructorReturn(this, Object.getPrototypeOf(GeolocationPermission).call(this, 'geolocation'));
 
-		_this7.enableHighAccurary = false;
-		_this7.state = 'unknown';
+		_this9.enableHighAccurary = false;
+		_this9.state = 'unknown';
 
-		if (!navigator.permissions) _this7.query = function (resolve) {
-			return resolve(new PermissionStatus(_this7.state));
+		if (!navigator.permissions) _this9.query = function (resolve) {
+			return resolve(new PermissionStatus(_this9.state));
 		};
-		return _this7;
+		return _this9;
 	}
 
 	_createClass(GeolocationPermission, [{
 		key: 'request',
 		value: function request(resolve, reject, opts) {
-			var _this8 = this;
+			var _this10 = this;
 
 			/*
    Some fallback/silence method that can be used
@@ -504,10 +516,10 @@ new (function (_Root5) {
 							nav.permissions.query({ name: 'geolocation' }).then(function (PermissionStatus) {
 								return iframe.remove({ /* Swich */
 									prompt: function prompt() {
-										return _this8.state = 'temporary disabled', _this8.dismissed(reject);
+										return _this10.state = 'temporary disabled', _this10.dismissed(reject);
 									},
 									denied: function denied() {
-										return _this8.state = 'denied', _this8.denied(reject);
+										return _this10.state = 'denied', _this10.denied(reject);
 									}
 								}[PermissionStatus.state]());
 							});
@@ -527,19 +539,19 @@ new (function (_Root5) {
 
 			navigator.geolocation.getCurrentPosition(resolve, function (err) {
 				if (err.code == 1 && window.chrome && window.chrome.webstore) {
-					_this8.query(function (PermissionStatus) {
-						_this8.state = PermissionStatus.state == 'prompt' ? 'temporary disabled' : 'denied';
+					_this10.query(function (PermissionStatus) {
+						_this10.state = PermissionStatus.state == 'prompt' ? 'temporary disabled' : 'denied';
 
-						if (PermissionStatus.state == 'prompt') return _this8.dismissed(reject);
-						_this8.request(resolve, reject, opts);
+						if (PermissionStatus.state == 'prompt') return _this10.dismissed(reject);
+						_this10.request(resolve, reject, opts);
 					});
 				}
 				({ /* Swich */
 					2: function _() {
-						return _this8.state = 'granted', reject(new PermissionError('Unavailable', 'Possition is unavailable'));
+						return _this10.state = 'granted', reject(new PermissionError('Unavailable', 'Possition is unavailable'));
 					},
 					3: function _() {
-						return _this8.state = 'granted', reject(new PermissionError('Timeout', 'Timeout expired'));
+						return _this10.state = 'granted', reject(new PermissionError('Timeout', 'Timeout expired'));
 					}
 				})[PermissionStatus.state]();
 			}, opts);
@@ -555,10 +567,10 @@ new (function (_Root6) {
 	function ImagePermission() {
 		_classCallCheck(this, ImagePermission);
 
-		var _this9 = _possibleConstructorReturn(this, Object.getPrototypeOf(ImagePermission).call(this, 'image'));
+		var _this11 = _possibleConstructorReturn(this, Object.getPrototypeOf(ImagePermission).call(this, 'image'));
 
-		_this9.state = 'unknown';
-		return _this9;
+		_this11.state = 'unknown';
+		return _this11;
 	}
 
 	_createClass(ImagePermission, [{
@@ -577,7 +589,7 @@ new (function (_Root6) {
 	}, {
 		key: 'request',
 		value: function request(resolve, reject) {
-			var _this10 = this;
+			var _this12 = this;
 
 			if (this.state == 'granted') return resolve();
 
@@ -587,17 +599,17 @@ new (function (_Root6) {
 			var blob = new Blob([buffer], { type: 'image/gif' });
 			var img = new Image();
 			img.onload = function () {
-				resolve();_this10.state = 'granted';
+				resolve();_this12.state = 'granted';
 			};
 			img.onerror = function () {
-				_this10.denied(reject);_this10.state = 'denied';
+				_this12.denied(reject);_this12.state = 'denied';
 			};
 			// img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
 			img.src = URL.createObjectURL(blob);
 			document.body.appendChild(img);
 			img.remove();
 			setTimeout(function () {
-				return _this10.denied(reject);
+				return _this12.denied(reject);
 			}, 500);
 		}
 	}]);
@@ -611,23 +623,20 @@ new (function (_Root7) {
 	function MidiPermission() {
 		_classCallCheck(this, MidiPermission);
 
-		var _this11 = _possibleConstructorReturn(this, Object.getPrototypeOf(MidiPermission).call(this, 'midi'));
+		var _this13 = _possibleConstructorReturn(this, Object.getPrototypeOf(MidiPermission).call(this, 'midi'));
 
-		if (!navigator.requestMIDIAccess) _this11.query = function (resolve) {
-			return resolve(new PermissionStatus('unsupported'));
-		};
-
-		return _this11;
+		_this13.supported = navigator.requestMIDIAccess;
+		return _this13;
 	}
 
 	_createClass(MidiPermission, [{
 		key: 'request',
 		value: function request(resolve, reject, opts) {
-			var _this12 = this;
+			var _this14 = this;
 
 			navigator.requestMIDIAccess(opts).then(resolve, function (err) {
-				return _this12.query(function (PermissionStatus) {
-					return PermissionStatus.state == 'prompt' ? _this12.dismissed(reject) : _this12.denied(reject);
+				return _this14.query(function (PermissionStatus) {
+					return PermissionStatus.state == 'prompt' ? _this14.dismissed(reject) : _this14.denied(reject);
 				}, undefined, opts);
 			});
 		}
@@ -642,10 +651,14 @@ new (function (_Root8) {
 	function ModalPermission() {
 		_classCallCheck(this, ModalPermission);
 
-		var _this13 = _possibleConstructorReturn(this, Object.getPrototypeOf(ModalPermission).call(this, 'modal'));
+		var _this15 = _possibleConstructorReturn(this, Object.getPrototypeOf(ModalPermission).call(this, 'modal'));
 
-		_this13.state = 'granted';
-		return _this13;
+		_this15.state = 'granted';
+
+		// Detect if modals is disabled by sandbox attribute
+		var sandbox = (frameElement || {}).sandbox || [];
+		if (sandbox.length && !frameElement.sandbox.contains('allow-modals')) _this15.state = 'disabled';
+		return _this15;
 	}
 
 	_createClass(ModalPermission, [{
@@ -685,26 +698,26 @@ new (function (_Root9) {
 	function NotificationPermission() {
 		_classCallCheck(this, NotificationPermission);
 
-		var _this14 = _possibleConstructorReturn(this, Object.getPrototypeOf(NotificationPermission).call(this, 'notifications'));
+		var _this16 = _possibleConstructorReturn(this, Object.getPrototypeOf(NotificationPermission).call(this, 'notifications'));
 
-		if (!navigator.permissions) _this14.query = function (resolve) {
-			return resolve(new PermissionStatus(Notification.permission === 'default' ? 'prompt' : Notification.permission));
+		if (!navigator.permissions) _this16.query = function (resolve) {
+			return resolve(new PermissionStatus(Notification.permission));
 		};
-		return _this14;
+		return _this16;
 	}
 
 	_createClass(NotificationPermission, [{
 		key: 'request',
 		value: function request(resolve, reject) {
-			var _this15 = this;
+			var _this17 = this;
 
 			var cb = function cb(state) {
 				return {
 					default: function _default() {
-						return _this15.dismissed(reject);
+						return _this17.dismissed(reject);
 					},
 					denied: function denied() {
-						return _this15.denied(reject);
+						return _this17.denied(reject);
 					},
 					granted: function granted() {
 						return resolve();
@@ -726,10 +739,13 @@ new (function (_Root10) {
 	function pointerLock() {
 		_classCallCheck(this, pointerLock);
 
-		var _this16 = _possibleConstructorReturn(this, Object.getPrototypeOf(pointerLock).call(this, 'pointerlock'));
+		var _this18 = _possibleConstructorReturn(this, Object.getPrototypeOf(pointerLock).call(this, 'pointerlock'));
 
-		_this16.state = 'unknown';
-		return _this16;
+		_this18.state = 'unknown';
+
+		var sandbox = (frameElement || {}).sandbox || [];
+		if (sandbox.length && !frameElement.sandbox.contains('allow-pointer-lock')) _this18.state = 'disabled';
+		return _this18;
 	}
 
 	_createClass(pointerLock, [{
@@ -741,23 +757,23 @@ new (function (_Root10) {
 	}, {
 		key: 'request',
 		value: function request(resolve, reject, opts) {
-			var _this17 = this;
+			var _this19 = this;
 
 			if ('event' in window && (!event || !event.isTrusted)) throw new Error("Failed to execute 'requestPointerLock' on 'Element': API can only be initiated by a user gesture.");
 
 			var immediately = now();
 
 			once(document, 'pointerlockchange pointerlockerror', function (evt) {
-				if (evt.type === 'pointerlockchange' && document.pointerLockElement) return resolve(_this17.state = 'granted');
+				if (evt.type === 'pointerlockchange' && document.pointerLockElement) return resolve(_this19.state = 'granted');
 
 				// A simple Boolean don't work cuz it is asynchronous but fast...
 				if (now() - immediately < 10) {
-					_this17.state = 'denied';
-					_this17.denied(reject);
+					_this19.state = 'denied';
+					_this19.denied(reject);
 				} else {
 					// Deny in chrome don't block, it really means dissmiss...
-					_this17.state = 'prompt';
-					_this17.dismissed(reject);
+					_this19.state = 'prompt';
+					_this19.dismissed(reject);
 				}
 			});
 
@@ -774,15 +790,16 @@ new (function (_Root11) {
 	function PushPermission() {
 		_classCallCheck(this, PushPermission);
 
+		var _this20 = _possibleConstructorReturn(this, Object.getPrototypeOf(PushPermission).call(this, 'push'));
+
+		if (!(_this20.supported = 'PushManager' in window)) return _possibleConstructorReturn(_this20);
+
 		// Could we do better? like checking if we have a subscription...?
 		// It would not work without ssl, so we could disabled it then
-
-		var _this18 = _possibleConstructorReturn(this, Object.getPrototypeOf(PushPermission).call(this, 'push'));
-
-		if (!navigator.permissions) _this18.query = function (resolve) {
+		if (!navigator.permissions) _this20.query = function (resolve) {
 			return resolve(new PermissionStatus(location.protocol == 'https:' || document.location.hostname == "localhost" ? 'unknown' : 'denied'));
 		};
-		return _this18;
+		return _this20;
 	}
 
 	_createClass(PushPermission, [{
@@ -810,18 +827,76 @@ new (function (_Root11) {
 	return PushPermission;
 }(Root))();
 
+// Safari's push is works very differently from the w3 standard
+// Otherwice it would have been merged with push and have opts for pushId & Service URL
 new (function (_Root12) {
-	_inherits(StoragePermission, _Root12);
+	_inherits(PushSafariPermission, _Root12);
+
+	function PushSafariPermission() {
+		_classCallCheck(this, PushSafariPermission);
+
+		var _this21 = _possibleConstructorReturn(this, Object.getPrototypeOf(PushSafariPermission).call(this, 'push-safari'));
+
+		_this21.supported = ((window.safari || {}).pushNotification || {}).permission;
+
+		return _this21;
+	}
+
+	_createClass(PushSafariPermission, [{
+		key: 'query',
+		value: function query(resolve, reject, opts) {
+			var state = window.safari.pushNotification.permission(opts.pushId);
+			var permission = new PermissionStatus(state.permission);
+
+			permission.endpoint = 'gateway.push.apple.com:2195';
+			permission.key = PushSafariPermission.str2ab(permission.deviceToken);
+
+			resolve(permission);
+		}
+
+		// You can never dissmiss the dialog in safari, pressing esc denies
+		// and there is no dissmiss button or click outside
+
+	}, {
+		key: 'request',
+		value: function request(resolve, reject, opts) {
+			var _this22 = this;
+
+			window.safari.pushNotification.requestPermission(opts.serviceUrl, opts.pushId, opts.data || {}, function (permissionData) {
+				return _this22.query(resolve, function () {
+					return _this22.denied(reject);
+				}, opts);
+			});
+		}
+	}], [{
+		key: 'str2ab',
+		value: function str2ab(str) {
+			var buf = new ArrayBuffer(str.length * 2); // 2 bytes for each char
+			var bufView = new Uint16Array(buf);
+
+			for (var i in str) {
+				bufView[i] = str.charCodeAt(i);
+			}return buf;
+		}
+	}]);
+
+	return PushSafariPermission;
+}(Root))();
+
+var store = function store(type) {
+	return navigator[type == 'persistent' ? 'webkitPersistentStorage' : 'webkitTemporaryStorage'];
+};
+
+new (function (_Root13) {
+	_inherits(StoragePermission, _Root13);
 
 	function StoragePermission() {
 		_classCallCheck(this, StoragePermission);
 
-		var _this19 = _possibleConstructorReturn(this, Object.getPrototypeOf(StoragePermission).call(this, 'storage'));
+		var _this23 = _possibleConstructorReturn(this, Object.getPrototypeOf(StoragePermission).call(this, 'storage'));
 
-		if (!navigator.webkitPersistentStorage) _this19.query = function (resolve) {
-			return resolve(new PermissionStatus('unsupported'));
-		};
-		return _this19;
+		_this23.supported = navigator.webkitPersistentStorage;
+		return _this23;
 	}
 
 	_createClass(StoragePermission, [{
@@ -831,29 +906,30 @@ new (function (_Root12) {
 
 			if (!/^(persistent|temporary)$/.test(opts.type)) throw new TypeError('Failed to execute the \'query\' property from \'su\': The provided value \'' + opts.type + '\' is not a valid enum type.');
 
-			StoragePermission.store(opts.type).queryUsageAndQuota(function (usedBytes, grantedBytes) {
-				var status = new PermissionStatus(grantedBytes >= opts.quota ? 'granted' : 'prompt');
+			store(opts.type).queryUsageAndQuota(function (usedBytes, grantedBytes) {
+				var status = new PermissionStatus(grantedBytes >= ~ ~opts.quota ? 'granted' : 'prompt');
 				status.used = usedBytes;
 				status.granted = grantedBytes;
-				resolve(status);
+				webkitRequestFileSystem(opts.type == 'persistent', 0, function (fs) {
+					status.root = fs;
+					resolve(status);
+				}, function (e) {
+					status.state = 'denied';
+					resolve(status);
+				});
 			});
 		}
 	}, {
 		key: 'request',
 		value: function request(resolve, reject, opts) {
-			grantedBytes = StoragePermission.store(opts.type).requestQuota(opts.quota, function (grantedBytes) {
-				webkitRequestFileSystem(opts.type == 'persistent', function (e) {
+			grantedBytes = store(opts.type).requestQuota(opts.quota, function (grantedBytes) {
+				webkitRequestFileSystem(opts.type == 'persistent', opts.quota || 0, function (e) {
 					console.log(e);
 				}, function (e) {
 					console.log(e);
 				});
 				console.log(grantedBytes, f);
 			});
-		}
-	}], [{
-		key: 'store',
-		value: function store(type) {
-			return navigator[type == 'persistent' ? 'webkitPersistentStorage' : 'webkitTemporaryStorage'];
 		}
 	}]);
 

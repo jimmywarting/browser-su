@@ -23,11 +23,10 @@ class KeyValStoragePermission extends Root {
 			used += key.length + this.storage.getItem(key).length
 		}
 
-		resolve({
-			state: this.state,
-			used: used * 2,
-			granted: 'unknown'
-		})
+		var status = new PermissionStatus(this.state)
+		status.used = used * 2
+		// status.granted = 'unknown'
+		resolve(status)
 	}
 }
 

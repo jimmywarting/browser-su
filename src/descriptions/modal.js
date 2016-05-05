@@ -4,6 +4,11 @@ new class ModalPermission extends Root {
 		super('modal')
 
 		this.state = 'granted'
+
+		// Detect if modals is disabled by sandbox attribute
+		let sandbox = (frameElement || {}).sandbox || []
+		if(sandbox.length && !frameElement.sandbox.contains('allow-modals'))
+			this.state = 'disabled'
 	}
 
 	query(resolve){

@@ -19,9 +19,9 @@ The Permission API is a living standard and keeps changing. They don't cover all
 I try to stay consistent as much as possible with the permission API. But doing some neat trade-off.
 
 #### Hello World
-
+https://jsfiddle.net/1awLpe59/2/
 ```javascript
-// Querying 
+// Querying
 su.query({name: 'description', ...opts }).then(resolve, reject)
 
 // Requesting

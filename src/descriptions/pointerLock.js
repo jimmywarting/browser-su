@@ -4,6 +4,10 @@ new class pointerLock extends Root {
 		super('pointerlock')
 
 		this.state = 'unknown'
+
+		let sandbox = (frameElement || {}).sandbox || []
+		if(sandbox.length && !frameElement.sandbox.contains('allow-pointer-lock'))
+			this.state = 'disabled'
 	}
 
 	query(resolve, reject) {

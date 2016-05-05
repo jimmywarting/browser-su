@@ -42,13 +42,23 @@ class Root {
 		reject(new PermissionError('Denied', 'User blocked access to ' + this.name))
 	}
 
-	unsupported(){
-		throw new PermissionError('Unsupported', 'This client dose not seem to have ' + this.name + ' support')
+	set supported(isSupported) {
+		!isSupported && (this.query = this.request = () => {
+			throw new PermissionError('Unsupported', 'This client dose not seem to have ' + this.name + ' support')
+		})
 	}
+
 }
 
 class PermissionStatus {
 	constructor(state){
+		var eventTarget = document.createDocumentFragment();
+
+		['addEventListener', 'dispatchEvent', 'removeEventListener']
+		.forEach(method =>
+			Object.defineProperty(this, method, { value: eventTarget[method] } )
+		)
+
 		// convert default to prompt
 		this.state = state !== 'default' && state || 'prompt'
 		this.onchange = null

@@ -3,8 +3,11 @@ new class PushPermission extends Root {
 	constructor() {
 		super('push')
 
+		if(!(this.supported = 'PushManager' in window)) return
+
 		// Could we do better? like checking if we have a subscription...?
 		// It would not work without ssl, so we could disabled it then
+		// chrome in jsfiddle reports denied while firefox reports unknown
 		if(!navigator.permissions)
 			this.query = resolve => resolve(new PermissionStatus(
 				location.protocol == 'https:' ||

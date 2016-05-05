@@ -3,9 +3,7 @@ new class MidiPermission extends Root {
 	constructor() {
 		super('midi')
 
-		if(!navigator.requestMIDIAccess)
-			this.query = resolve => resolve(new PermissionStatus('unsupported'))
-
+		this.supported = navigator.requestMIDIAccess
 	}
 
 	request(resolve, reject, opts) {

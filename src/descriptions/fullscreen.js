@@ -3,8 +3,6 @@ new class FullScreenPermission extends Root {
 	constructor() {
 		super('fullscreen')
 
-		this.supported = false
-
 		var apis = {
 			// http://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
 			w3: {
@@ -57,10 +55,11 @@ new class FullScreenPermission extends Root {
 			if (apis[vendor].enabled in document) {
 				// It seems this browser support the fullscreen API
 				this.api = apis[vendor];
-				this.supported = true
 				break;
 			}
 		}
+
+		this.supported = this.api
 	}
 
 	query(resolve) {

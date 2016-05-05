@@ -1,10 +1,14 @@
+const store = type => {
+	return navigator[type == 'persistent'
+		? 'webkitPersistentStorage'
+		: 'webkitTemporaryStorage']
+}
+
 new class StoragePermission extends Root {
 
 	constructor() {
 		super('storage')
-
-		if(!navigator.webkitPersistentStorage)
-			this.query = resolve => resolve(new PermissionStatus('unsupported'))
+		this.supported = navigator.webkitPersistentStorage
 	}
 
 	query(resolve, reject, opts){
@@ -14,24 +18,24 @@ new class StoragePermission extends Root {
 		if(!/^(persistent|temporary)$/.test(opts.type))
 			throw new TypeError(`Failed to execute the 'query' property from 'su': The provided value '${opts.type}' is not a valid enum type.`)
 
-		StoragePermission.store(opts.type).queryUsageAndQuota((usedBytes, grantedBytes) => {
-			var status = new PermissionStatus(grantedBytes >= opts.quota ? 'granted' : 'prompt')
+		store(opts.type).queryUsageAndQuota((usedBytes, grantedBytes) => {
+			var status = new PermissionStatus(grantedBytes >= ~~opts.quota ? 'granted' : 'prompt')
 			status.used = usedBytes
 			status.granted = grantedBytes
-			resolve(status)
+			webkitRequestFileSystem(opts.type == 'persistent', 0, fs => {
+				status.root = fs
+				resolve(status)
+			}, e => {
+				status.state = 'denied'
+				resolve(status)
+			})
 		})
 	}
 
 	request(resolve, reject, opts) {
-		grantedBytes = StoragePermission.store(opts.type).requestQuota(opts.quota, grantedBytes => {
-			webkitRequestFileSystem(opts.type == 'persistent', (e)=>{console.log(e)}, (e)=>{console.log(e)})
+		grantedBytes = store(opts.type).requestQuota(opts.quota, grantedBytes => {
+			webkitRequestFileSystem(opts.type == 'persistent', opts.quota || 0, (e)=>{console.log(e)}, (e)=>{console.log(e)})
 			console.log(grantedBytes, f)
 		});
-	}
-
-	static store(type) {
-		return navigator[type == 'persistent'
-			? 'webkitPersistentStorage'
-			: 'webkitTemporaryStorage']
 	}
 }
