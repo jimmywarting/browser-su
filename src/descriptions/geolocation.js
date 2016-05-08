@@ -10,6 +10,7 @@ new class GeolocationPermission extends Root {
 
 		this.enableHighAccurary = false
 		this.state = 'unknown'
+		this.supported = navigator.geolocation
 
 		if(!navigator.permissions)
 			this.query = resolve => resolve(new PermissionStatus(this.state))
@@ -41,6 +42,9 @@ new class GeolocationPermission extends Root {
 		// but the fact is that you can still request a new permission if
 		// you just reload the page, a workaround is to create a new iframe
 		// and ask from that window
+		//
+		// other browsers (like safari) behaves the same so this could be used
+		// But we have no way of distinguish dissmiss from denied
 		if(this.state === 'temporary disabled'){
 			let iframe = document.createElement('iframe')
 			iframe.hidden = true
@@ -64,6 +68,12 @@ new class GeolocationPermission extends Root {
 
 		if(this.state === 'denied'){
 			return this.denied(reject)
+		}
+
+		if(isFF) { // Firefox door hanger is bad...
+			once(window, 'focus click', () => {
+				this.dismissed(reject)
+			})
 		}
 
 		navigator.geolocation.getCurrentPosition(resolve, err => {

@@ -1,5 +1,5 @@
-const store = type => {
-	return navigator[type == 'persistent'
+const store = storage => {
+	return navigator[storage == 'persistent'
 		? 'webkitPersistentStorage'
 		: 'webkitTemporaryStorage']
 }
@@ -7,22 +7,22 @@ const store = type => {
 new class StoragePermission extends Root {
 
 	constructor() {
-		super('storage')
+		super('fs')
 		this.supported = navigator.webkitPersistentStorage
 	}
 
 	query(resolve, reject, opts){
-		if(opts.type === undefined)
-			throw new TypeError(`Failed to execute the 'query' property from 'su': required member type is undefined.`)
+		if(opts.storage === undefined)
+			throw new TypeError(`Failed to execute the 'query' property from 'su': required member storage is undefined.`)
 
-		if(!/^(persistent|temporary)$/.test(opts.type))
-			throw new TypeError(`Failed to execute the 'query' property from 'su': The provided value '${opts.type}' is not a valid enum type.`)
+		if(!/^(persistent|temporary)$/.test(opts.storage))
+			throw new TypeError(`Failed to execute the 'query' property from 'su': The provided value '${opts.storage}' is not a valid enum storage.`)
 
-		store(opts.type).queryUsageAndQuota((usedBytes, grantedBytes) => {
-			var status = new PermissionStatus(grantedBytes >= ~~opts.quota ? 'granted' : 'prompt')
-			status.used = usedBytes
-			status.granted = grantedBytes
-			webkitRequestFileSystem(opts.type == 'persistent', 0, fs => {
+		store(opts.storage).queryUsageAndQuota((used, granted) => {
+			var status = new PermissionStatus(granted >= ~~opts.quota ? 'granted' : 'prompt')
+			status.used = used
+			status.granted = granted
+			webkitRequestFileSystem(opts.storage == 'persistent', 0, fs => {
 				status.root = fs
 				resolve(status)
 			}, e => {
@@ -33,9 +33,14 @@ new class StoragePermission extends Root {
 	}
 
 	request(resolve, reject, opts) {
-		grantedBytes = store(opts.type).requestQuota(opts.quota, grantedBytes => {
-			webkitRequestFileSystem(opts.type == 'persistent', opts.quota || 0, (e)=>{console.log(e)}, (e)=>{console.log(e)})
-			console.log(grantedBytes, f)
-		});
+		store(opts.storage).requestQuota(opts.quota, () => {
+			this.query(permission => {
+				resolve({
+					used: permission.used,
+					granted: permission.granted,
+					root: permission.root
+				})
+			}, this.denied, opts)
+		}, reject)
 	}
 }

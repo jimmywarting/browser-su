@@ -3,6 +3,9 @@
 const iframed = !window.opener && !!(window.top && window != window.top || window.parent && window != window.parent);
 const now = window.performance && performance.now || Date.now || (C => +new Date)
 const PermissionName = {}
+const isFF = "MozAppearance" in document.documentElement.style
+const isSafari = /constructor/i.test(window.HTMLElement)
+const isBlink = !!window.webkitRequestFileSystem
 
 // create a one-time event
 const once = (node, types, callback) => {
@@ -16,6 +19,38 @@ const once = (node, types, callback) => {
 		return [cb, name]
 	})
 }
+
+/* Could be useful to check...
+new Promise(resolve => {
+	let db,
+	on = () => resolve(true),
+	off = () => resolve(false),
+    tryls = () => {
+        try {
+            localStorage.length ? off() : (localStorage.x = 1, localStorage.removeItem("x"), off())
+        } catch (e) {
+			// Safari only enables cookie in private mode
+			// if cookie is disabled then all client side storage is disabled
+			// if all client side storage is disabled, then there is no point
+			// in using private mode
+            navigator.cookieEnabled ? on() : off()
+        }
+    }
+
+    isBlink ?
+		webkitRequestFileSystem(0, 0, off, on)
+	: isFF ?
+		(db = indexedDB.open("test"), db.onerror = on, db.onsuccess = off)
+	: isSafari ?
+		tryls()
+	: !window.indexedDB && (window.PointerEvent || window.MSPointerEvent) ?
+		on()
+	: off()
+}).then(isPrivateMode => {
+    console.log(isPrivateMode)
+})
+*/
+
 
 class PermissionError extends Error {
 	constructor(name, msg) {
