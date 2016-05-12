@@ -3,8 +3,13 @@ new class NotificationPermission extends Root {
 	constructor() {
 		super('notifications')
 
-		if(!navigator.permissions)
-			this.query = resolve => resolve(new PermissionStatus(Notification.permission))
+		if(!navigator.permissions) {
+			this.query = resolve => resolve(new PermissionStatus(
+				Notification.permission === 'default'
+					? 'prompt'
+					: Notification.permission
+			))
+		}
 	}
 
 	request(resolve, reject) {

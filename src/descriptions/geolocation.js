@@ -89,6 +89,7 @@ new class GeolocationPermission extends Root {
 				})
 			}
 			({ /* Swich */
+				1: () => (this.state = 'denied', this.denied(reject)),
 				2: () => (this.state = 'granted', reject(new PermissionError('Unavailable', 'Possition is unavailable'))),
 				3: () => (this.state = 'granted', reject(new PermissionError('Timeout', 'Timeout expired')))
 			})[PermissionStatus.state]()
