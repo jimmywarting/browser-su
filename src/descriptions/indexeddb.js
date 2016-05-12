@@ -23,16 +23,29 @@ new class IndexDB extends Root {
 		// Firefox supports temporary, persistent and default...
 		// it behaves as persistent storage for installed Firefox OS apps,
 		// and temporary storage for any other type of use.
+		// http://mzl.la/1s1FJvU
 
-		var request = indexedDB.open("myDatabase", { version: 1, storage: "persistent" })
-		let db = indexedDB.open(opts.name)
-		db.onerror = () => resolve(true)
-		db.onsuccess = () => resolve(false)
+		if(!navigator.cookieEnabled || this.state == 'denied')
+			return resolve(new PermissionStatus('denied'))
+
+		if (opts.storage) {
+			try {
+				indexedDB.open('su:x', {storage: 'temporary'})
+				resolve(new PermissionStatus(opts.storage === 'persistent' ? 'prompt' : 'granted'))
+			} catch (err) {
+				reject(new PermissionError('Unsupported', 'This client dose not seem be able to select storage type'))
+			}
+		} else {
+			let db = indexedDB.open('su:x')
+			db.onerror = err => resolve(new PermissionStatus('denied'))
+			db.onsuccess = () => resolve(new PermissionStatus('granted'))
+		}
+
 	}
 
 	request(resolve, reject, opts) {
-		let db = indexedDB.open(opts.database, opts)
-		db.onerror = () => resolve(true)
-		db.onsuccess = () => resolve(false)
+		var db = indexedDB.open(opts.database, opts.storage ? opts : opts.version)
+		db.onerror = err => reject(err)
+		db.onsuccess = () => resolve(db.result)
 	}
 }
