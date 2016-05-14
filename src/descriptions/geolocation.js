@@ -8,6 +8,9 @@ new class GeolocationPermission extends Root {
 	constructor() {
 		super('geolocation')
 
+		if(insecure)
+			this.warn('getCurrentPosition() and watchPosition()')
+
 		this.enableHighAccurary = false
 		this.state = 'unknown'
 		this.supported = navigator.geolocation
@@ -17,25 +20,16 @@ new class GeolocationPermission extends Root {
 	}
 
 	request(resolve, reject, opts) {
+
 		/*
-		Some fallback/silence method that can be used
-		that I'm looking into
+		fallback/silence method that can be used that I'm looking into
+		think this is more accurate then freegeoip or any other geoIP service
 
-		fetch('https://freegeoip.net/json')
+		fetch("https://www.googleapis.com/geolocation/v1/geolocate?key=%GOOGLE-API-KEY%", {
+			method: 'POST'
+		})
 		.then(res => res.json())
-		.then(json => console.log(json))
-
-		iframe = document.createElement('iframe')
-		script = document.createElement('script')
-		script.src = 'https://www.google.com/jsapi'
-		script.onload = () => console.log(iframe.contentWindow.google.loader.ClientLocation), iframe.remove()
-		iframe.hidden = true
-		iframe.onload = () => iframe.contentDocument.body.appendChild(script)
-		document.body.appendChild(iframe)
-
-		fetch('https://ipinfo.io', {headers: {Accept: 'application/json'}})
-		.then(res => res.json())
-		.then(json => console.log(json))
+		.then(e=>console.log(e))
 		*/
 
 		// in chrome when you dismissed the dialog it throws denied error
@@ -70,14 +64,11 @@ new class GeolocationPermission extends Root {
 			return this.denied(reject)
 		}
 
-		if(isFF) { // Firefox door hanger is bad...
-			once(window, 'focus click', () => {
-				this.dismissed(reject)
-			})
-		}
+		if(isFF) // Firefox door hanger is bad...
+			once(window, 'focus click', () => this.dismissed(reject))
 
 		navigator.geolocation.getCurrentPosition(resolve, err => {
-			if(err.code == 1 && window.chrome && window.chrome.webstore){
+			if(err.code == 1 && navigator.permissions){
 				this.query(PermissionStatus => {
 					this.state = PermissionStatus.state == 'prompt'
 						? 'temporary disabled'

@@ -6,6 +6,7 @@ const PermissionName = {}
 const isFF = "MozAppearance" in document.documentElement.style
 const isSafari = /constructor/i.test(window.HTMLElement)
 const isBlink = !!window.webkitRequestFileSystem
+const insecure = location.protocol == 'http:' && location.hostname != 'localhost'
 
 // create a one-time event
 const once = (node, types, callback) => {
@@ -82,6 +83,26 @@ class Root {
 			throw new PermissionError('Unsupported', 'This client dose not seem to have ' + this.name + ' support')
 		})
 	}
+
+	warn(what){
+		let query = this.query
+		let request = this.request
+
+		this.query = (...args) => {
+			console.warn(what + ' are deprecated on insecure origins. To use this feature, you should consider switching your application to a secure origin, such as HTTPS. See https://goo.gl/rStTGz for more details.')
+			this.query = query
+			this.request = request
+			query.apply(this, args)
+		}
+
+		this.request = (...args) => {
+			console.warn(what + ' are deprecated on insecure origins. To use this feature, you should consider switching your application to a secure origin, such as HTTPS. See https://goo.gl/rStTGz for more details.')
+			this.request = request
+			this.query = query
+			request.apply(this, args)
+		}
+	}
+
 
 }
 

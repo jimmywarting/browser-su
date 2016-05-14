@@ -1,7 +1,7 @@
 new class BackgroundSyncPermission extends Root {
 
 	constructor() {
-		super('BackgroundSync')
+		super('backgroundSync')
 	}
 
 	request(resolve, reject, opts){

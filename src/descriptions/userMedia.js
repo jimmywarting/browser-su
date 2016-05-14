@@ -1,7 +1,10 @@
 new class UserMedia extends Root {
 
 	constructor() {
-        super('user-media')
+        super('userMedia')
+
+		if(insecure)
+			this.warn('getUserMedia')
 
         if(!navigator.mediaDevices.getUserMedia) {
             this.supported = this.getUserMedia = (navigator.getUserMedia ||
@@ -16,6 +19,9 @@ new class UserMedia extends Root {
 	}
 
 	request(resolve, reject, opts) {
+		if(isFF) // Firefox door hanger is bad...
+			once(window, 'focus click', () => this.dismissed(reject))
+
         if(navigator.mediaDevices.getUserMedia)
             navigator.mediaDevices.getUserMedia(opts).then(resolve, reject)
         else
