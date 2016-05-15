@@ -23,7 +23,7 @@ new class StoragePermission extends Root {
 			status.used = used
 			status.granted = granted
 			webkitRequestFileSystem(opts.storage == 'persistent', 0, fs => {
-				status.root = fs
+				status.fs = fs
 				resolve(status)
 			}, e => {
 				status.state = 'denied'
@@ -35,11 +35,13 @@ new class StoragePermission extends Root {
 	request(resolve, reject, opts) {
 		store(opts.storage).requestQuota(opts.quota, () => {
 			this.query(permission => {
-				resolve({
-					used: permission.used,
-					granted: permission.granted,
-					root: permission.root
-				})
+				permission.state == 'granted'
+					? resolve({
+						used: permission.used,
+						granted: permission.granted,
+						fs: permission.fs
+					})
+					: this.dismissed(reject)
 			}, this.denied, opts)
 		}, reject)
 	}
