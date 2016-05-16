@@ -10,15 +10,17 @@ const insecure = location.protocol == 'http:' && location.hostname != 'localhost
 
 // create a one-time event
 const once = (node, types, callback) => {
+	var off = () => {for(let x of map) node.removeEventListener(x[1], x[0])}
 	var map = types.split(' ').map( name => {
 		let cb = evt => {
-			for(let x of map) node.removeEventListener(x[1], x[0])
+			off()
 			// call handler
 			callback(evt)
 		}
 		node.addEventListener(name, cb, false)
 		return [cb, name]
 	})
+	return off
 }
 
 /* Could be useful to check...
@@ -59,6 +61,15 @@ class PermissionError extends Error {
 		this.name = 'Request' + name + 'Error'
 	}
 }
+
+// window.addEventListener('storage', evt => {
+// 	if(evt.key.startsWith('su$')){
+// 		let description = evt.key.split('su$')[1]
+//
+// 		if(PermissionName[description])
+// 			PermissionName[description].onchange(JSON.parse(evt.newValue))
+// 	}
+// })
 
 class Root {
 	constructor(name){
@@ -102,8 +113,6 @@ class Root {
 			request.apply(this, args)
 		}
 	}
-
-
 }
 
 class PermissionStatus {
