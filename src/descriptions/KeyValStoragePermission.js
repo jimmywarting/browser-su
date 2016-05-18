@@ -4,10 +4,12 @@ class KeyValStoragePermission extends Root {
 		super(name)
 
 		this.storage = window[name]
-		this.state = this.storage.length ? 'granted' : (x=>{
+		this.state = (x=>{
 			try {
-				this.storage.x = 1
-				this.storage.removeItem('x')
+				this.storage.length || (
+					this.storage.x = 1,
+					this.storage.removeItem('x')
+				)
 				return 'granted'
 			} catch(e) {
 				return 'denied'
