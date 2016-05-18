@@ -3,9 +3,9 @@ class KeyValStoragePermission extends Root {
 	constructor(name) {
 		super(name)
 
-		this.storage = window[name]
-		this.state = (x=>{
+		this.state = (()=>{
 			try {
+				this.storage = window[name]
 				this.storage.length || (
 					this.storage.x = 1,
 					this.storage.removeItem('x')
