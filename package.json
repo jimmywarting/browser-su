@@ -23,7 +23,7 @@
     "gulp-concat": "^2.6.0",
     "gulp-jscs": "^4.0.0",
     "gulp-jsdoc3": "^1.0.1",
-    "gulp-mocha": "^3.0.1",
+    "gulp-mocha": "^4.1.0",
     "gulp-wrap": "^0.13.0"
   },
   "dependencies": {
