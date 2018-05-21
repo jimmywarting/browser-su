@@ -24,7 +24,7 @@
     "gulp-jscs": "^4.0.0",
     "gulp-jsdoc3": "^1.0.1",
     "gulp-mocha": "^3.0.1",
-    "gulp-wrap": "^0.13.0"
+    "gulp-wrap": "^0.14.0"
   },
   "dependencies": {
     "gulp-uglify": "^2.0.0"
